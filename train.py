@@ -103,6 +103,11 @@ def parse_args():
         help="Name of or path to model",
         default='gpt2',
     )
+    parser.add_argument(
+        "--use_tril_attention_mask",
+        help="Use tril attention mask during training",
+        action="store_true",
+    )
     parser.add_argument("--fp16", help="Enable fp16", action="store_true")
     parser.add_argument("--bf16", help="Enable bf16", action="store_true")
     parser.add_argument(
@@ -165,10 +170,11 @@ def parse_args():
 
 
 class LitModule(pl.LightningModule):
-    def __init__(self, model_name: str):
+    def __init__(self, model_name: str, use_tril_attention_mask: str = False):
         super().__init__()
         self.save_hyperparameters()
         self.llm = self.register_core_module(init_model(model_name))
+        self.use_tril_attention_mask = use_tril_attention_mask
         self.metric_loss = torchmetrics.MeanMetric()
         self.metric_accuracy = torchmetrics.Accuracy(
             task='multiclass',
@@ -176,7 +182,7 @@ class LitModule(pl.LightningModule):
         )
 
     @cache
-    def get_tril_matrix(
+    def get_batch_tril_matrix(
         self, block_size: int, batch_size: Optional[int] = None
     ) -> torch.Tensor:
         matrix = torch.ones(block_size, block_size).tril()
@@ -190,9 +196,10 @@ class LitModule(pl.LightningModule):
 
     def training_step(self, batch: Dict[str, torch.Tensor], batch_idx):
         batch_size, block_size = batch['input_ids'].shape
-        batch['attention_mask'] = self.get_tril_matrix(
-            block_size, batch_size=batch_size
-        ).to(self.device)
+        if self.use_tril_attention_mask:
+            batch['attention_mask'] = self.get_batch_tril_matrix(
+                block_size, batch_size=batch_size
+            ).to(self.device)
         outputs = self.llm(**batch, return_dict=True)
         loss = outputs.loss
 
@@ -244,7 +251,7 @@ if __name__ == '__main__':
     set_seed(args.seed)
 
     # lightning module
-    lit_module = LitModule(args.model_name)
+    lit_module = LitModule(args.model_name, args.use_tril_attention_mask)
 
     # datasets
     tokenizer = load_tokenizer(args.tokenizer_name_or_path)
