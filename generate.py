@@ -1,34 +1,10 @@
 import argparse
-import os
-from typing import List, Union
+from typing import List
 
 import torch
-from transformers import (
-    AutoModel,
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    PreTrainedModel,
-    PreTrainedTokenizer,
-)
+from transformers import PreTrainedModel, PreTrainedTokenizer
 
-
-def load_model(model_name_or_path: Union[str, os.PathLike]) -> PreTrainedModel:
-    try:
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name_or_path, trust_remote_code=True
-        )
-    except ValueError:
-        model = AutoModel.from_pretrained(model_name_or_path, trust_remote_code=True)
-    return model
-
-
-def load_tokenizer(model_name_or_path: Union[str, os.PathLike]) -> PreTrainedTokenizer:
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name_or_path, padding_side='left', trust_remote_code=True
-    )
-    if tokenizer.pad_token_id is None:
-        tokenizer.pad_token = tokenizer.eos_token
-    return tokenizer
+from utils import load_model, load_tokenizer
 
 
 def eval_prompts(
