@@ -15,6 +15,7 @@ from transformers import (
 )
 
 from lit_module import LitModule
+from lit_patches import apply_all_patches
 from utils import load_tokenizer
 
 
@@ -189,6 +190,7 @@ if __name__ == '__main__':
     )
 
     # trainer
+    apply_all_patches()
     torch.set_float32_matmul_precision('medium')
     if args.bf16:
         precision = 'bf16-mixed'
