@@ -81,6 +81,12 @@ def parse_args():
         default='gpt2',
     )
     parser.add_argument(
+        "--learning_rate",
+        type=float,
+        help="Learning rate",
+        default=0.0001,
+    )
+    parser.add_argument(
         "--use_tril_attention_mask",
         help="Use tril attention mask during training",
         action="store_true",
@@ -125,6 +131,12 @@ def parse_args():
         default=16,
     )
     parser.add_argument(
+        "--max_epochs",
+        type=int,
+        help="Max epochs",
+        default=None,
+    )
+    parser.add_argument(
         "--strategy",
         type=str,
         help="Name of pytorch lightning distribution strategy",
@@ -155,7 +167,9 @@ if __name__ == '__main__':
     set_seed(args.seed)
 
     # lightning module
-    lit_module = LitModule(args.model_name, args.use_tril_attention_mask)
+    lit_module = LitModule(
+        args.model_name, args.learning_rate, args.use_tril_attention_mask
+    )
 
     # datasets
     tokenizer = load_tokenizer(args.tokenizer_name_or_path)
@@ -204,6 +218,7 @@ if __name__ == '__main__':
         log_every_n_steps=5,
         accumulate_grad_batches=args.accumulate_grad_batches,
         strategy=args.strategy,
+        max_epochs=args.max_epochs,
     )
     lit_trainer.fit(
         lit_module,

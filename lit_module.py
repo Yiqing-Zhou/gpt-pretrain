@@ -9,10 +9,16 @@ from utils import init_model
 
 
 class LitModule(pl.LightningModule):
-    def __init__(self, model_name: str, use_tril_attention_mask: str = False):
+    def __init__(
+        self,
+        model_name: str,
+        learning_rate: float = 0.0001,
+        use_tril_attention_mask: str = False,
+    ):
         super().__init__()
         self.save_hyperparameters()
         self.llm = self.register_core_module(init_model(model_name))
+        self.learning_rate = learning_rate
         self.use_tril_attention_mask = use_tril_attention_mask
         self.metric_loss = torchmetrics.MeanMetric()
         self.metric_accuracy = torchmetrics.Accuracy(
@@ -62,7 +68,9 @@ class LitModule(pl.LightningModule):
         self.log('accuracy', self.metric_accuracy, rank_zero_only=True)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.trainer.model.parameters(), lr=0.0001)
+        optimizer = torch.optim.AdamW(
+            self.trainer.model.parameters(), lr=self.learning_rate
+        )
         return optimizer
 
     def configure_callbacks(self):
