@@ -68,6 +68,18 @@ class LitModule(pl.LightningModule):
         self.log('accuracy', self.metric_accuracy, rank_zero_only=True)
 
     def configure_optimizers(self):
+        strategy = self.trainer.strategy
+        if isinstance(strategy, pl.strategies.DeepSpeedStrategy):
+            assert "optimizer" not in strategy.config
+            zero_config = strategy.config.get("zero_optimization")
+            if zero_config is not None:
+                if "offload_optimizer" in zero_config:
+                    import deepspeed
+
+                    optimizer = deepspeed.ops.adam.DeepSpeedCPUAdam(
+                        self.trainer.model.parameters(), lr=self.learning_rate
+                    )
+                    return optimizer
         optimizer = torch.optim.AdamW(
             self.trainer.model.parameters(), lr=self.learning_rate
         )
