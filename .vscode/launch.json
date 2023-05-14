@@ -5,13 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: train",
+            "name": "Python: lit train",
             "type": "python",
             "request": "launch",
-            "program": "train.py",
-            "args": [
-                "--dataset_name", "wikitext:wikitext-2-v1",
-            ],
+            "program": "lit_train.py",
+            "args": [],
             "console": "integratedTerminal",
             "justMyCode": true
         },
