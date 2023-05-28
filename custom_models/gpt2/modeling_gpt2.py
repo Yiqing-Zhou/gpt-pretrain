@@ -43,25 +43,15 @@ class GPT2Model(transformers.models.gpt2.GPT2Model):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple, BaseModelOutputWithPastAndCrossAttentions]:
-        output_attentions = (
-            output_attentions
-            if output_attentions is not None
-            else self.config.output_attentions
-        )
+        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = (
-            output_hidden_states
-            if output_hidden_states is not None
-            else self.config.output_hidden_states
+            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
         )
         use_cache = use_cache if use_cache is not None else self.config.use_cache
-        return_dict = (
-            return_dict if return_dict is not None else self.config.use_return_dict
-        )
+        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         if input_ids is not None and inputs_embeds is not None:
-            raise ValueError(
-                "You cannot specify both input_ids and inputs_embeds at the same time"
-            )
+            raise ValueError("You cannot specify both input_ids and inputs_embeds at the same time")
         elif input_ids is not None:
             input_shape = input_ids.size()
             input_ids = input_ids.view(-1, input_shape[-1])
@@ -107,9 +97,7 @@ class GPT2Model(transformers.models.gpt2.GPT2Model):
             elif attention_mask.dim() == 3:
                 attention_mask = attention_mask[:, None, ...]
             else:
-                raise ValueError(
-                    f"attention_mask.dim() is {attention_mask.dim()}, should be 2 or 3"
-                )
+                raise ValueError(f"attention_mask.dim() is {attention_mask.dim()}, should be 2 or 3")
 
             # Since attention_mask is 1.0 for positions we want to attend and 0.0 for
             # masked positions, this operation will create a tensor which is 0.0 for
@@ -162,9 +150,7 @@ class GPT2Model(transformers.models.gpt2.GPT2Model):
 
         presents = () if use_cache else None
         all_self_attentions = () if output_attentions else None
-        all_cross_attentions = (
-            () if output_attentions and self.config.add_cross_attention else None
-        )
+        all_cross_attentions = () if output_attentions and self.config.add_cross_attention else None
         all_hidden_states = () if output_hidden_states else None
         for i, (block, layer_past) in enumerate(zip(self.h, past_key_values)):
             # Model parallel
@@ -172,9 +158,7 @@ class GPT2Model(transformers.models.gpt2.GPT2Model):
                 torch.cuda.set_device(hidden_states.device)
                 # Ensure layer_past is on same device as hidden_states (might not be correct)
                 if layer_past is not None:
-                    layer_past = tuple(
-                        past_state.to(hidden_states.device) for past_state in layer_past
-                    )
+                    layer_past = tuple(past_state.to(hidden_states.device) for past_state in layer_past)
                 # Ensure that attention_mask is always on the same device as hidden_states
                 if attention_mask is not None:
                     attention_mask = attention_mask.to(hidden_states.device)
@@ -218,13 +202,9 @@ class GPT2Model(transformers.models.gpt2.GPT2Model):
                 presents = presents + (outputs[1],)
 
             if output_attentions:
-                all_self_attentions = all_self_attentions + (
-                    outputs[2 if use_cache else 1],
-                )
+                all_self_attentions = all_self_attentions + (outputs[2 if use_cache else 1],)
                 if self.config.add_cross_attention:
-                    all_cross_attentions = all_cross_attentions + (
-                        outputs[3 if use_cache else 2],
-                    )
+                    all_cross_attentions = all_cross_attentions + (outputs[3 if use_cache else 2],)
 
             # Model Parallel: If it's the last layer for that device, put things on the next device
             if self.model_parallel:
@@ -274,9 +254,7 @@ class GPT2LMHeadModel(transformers.models.gpt2.GPT2LMHeadModel):
         # Initialize weights and apply final processing
         self.post_init()
 
-    def prepare_inputs_for_generation(
-        self, input_ids, past_key_values=None, inputs_embeds=None, **kwargs
-    ):
+    def prepare_inputs_for_generation(self, input_ids, past_key_values=None, inputs_embeds=None, **kwargs):
         token_type_ids = kwargs.get("token_type_ids", None)
         # only last token for inputs_ids if past is defined in kwargs
         if past_key_values:
@@ -326,9 +304,7 @@ class GPT2LMHeadModel(transformers.models.gpt2.GPT2LMHeadModel):
         # update token_type_ids with last value
         if "token_type_ids" in model_kwargs:
             token_type_ids = model_kwargs["token_type_ids"]
-            model_kwargs["token_type_ids"] = torch.cat(
-                [token_type_ids, token_type_ids[:, -1].unsqueeze(-1)], dim=-1
-            )
+            model_kwargs["token_type_ids"] = torch.cat([token_type_ids, token_type_ids[:, -1].unsqueeze(-1)], dim=-1)
 
         # update position_ids
         if "position_ids" in model_kwargs:
@@ -363,9 +339,7 @@ class GPT2LMHeadModel(transformers.models.gpt2.GPT2LMHeadModel):
                     )
                     model_kwargs["attention_mask"] = attention_mask
                 else:
-                    raise ValueError(
-                        f"attention_mask.dim() is {attention_mask.dim()}, should be 2 or 3"
-                    )
+                    raise ValueError(f"attention_mask.dim() is {attention_mask.dim()}, should be 2 or 3")
         else:
             # update decoder attention mask
             if "decoder_attention_mask" in model_kwargs:
@@ -373,9 +347,7 @@ class GPT2LMHeadModel(transformers.models.gpt2.GPT2LMHeadModel):
                 model_kwargs["decoder_attention_mask"] = torch.cat(
                     [
                         decoder_attention_mask,
-                        decoder_attention_mask.new_ones(
-                            (decoder_attention_mask.shape[0], 1)
-                        ),
+                        decoder_attention_mask.new_ones((decoder_attention_mask.shape[0], 1)),
                     ],
                     dim=-1,
                 )

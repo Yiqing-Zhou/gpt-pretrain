@@ -35,22 +35,14 @@ def load_model(model_name_or_path: Union[str, os.PathLike]) -> PreTrainedModel:
         model = custom_models.AutoModel.from_pretrained(model_name_or_path)
     else:
         try:
-            model = AutoModelForCausalLM.from_pretrained(
-                model_name_or_path, trust_remote_code=True
-            )
+            model = AutoModelForCausalLM.from_pretrained(model_name_or_path, trust_remote_code=True)
         except ValueError:
-            model = AutoModel.from_pretrained(
-                model_name_or_path, trust_remote_code=True
-            )
+            model = AutoModel.from_pretrained(model_name_or_path, trust_remote_code=True)
     return model
 
 
-def load_tokenizer(
-    tokenizer_name_or_path: Union[str, os.PathLike]
-) -> PreTrainedTokenizer:
-    tokenizer = AutoTokenizer.from_pretrained(
-        tokenizer_name_or_path, padding_side='left', trust_remote_code=True
-    )
+def load_tokenizer(tokenizer_name_or_path: Union[str, os.PathLike]) -> PreTrainedTokenizer:
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path, padding_side='left', trust_remote_code=True)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
     return tokenizer

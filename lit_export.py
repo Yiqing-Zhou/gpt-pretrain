@@ -26,8 +26,6 @@ if __name__ == '__main__':
 
     checkpoint_file_path = next(lightning_logs_dir_path.glob("checkpoints/*.ckpt"))
 
-    lit_module = LitModule.load_from_checkpoint(
-        checkpoint_file_path, map_location='cpu'
-    )
+    lit_module = LitModule.load_from_checkpoint(checkpoint_file_path, map_location='cpu')
     model: PreTrainedModel = lit_module.__core_module__
     model.save_pretrained(exports_dir_path)

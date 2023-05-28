@@ -25,16 +25,12 @@ def split_raw_dataset(
     if 'validation' in raw_dataset:
         train_dataset, val_dataset = raw_dataset['train'], raw_dataset['validation']
     else:
-        raw_dataset = raw_dataset['train'].train_test_split(
-            test_size=0.05, seed=args.seed
-        )
+        raw_dataset = raw_dataset['train'].train_test_split(test_size=0.05, seed=args.seed)
         train_dataset, val_dataset = raw_dataset['train'], raw_dataset['test']
     return train_dataset, val_dataset
 
 
-def process_dataset(
-    dataset: datasets.Dataset, tokenizer: PreTrainedTokenizer
-) -> datasets.Dataset:
+def process_dataset(dataset: datasets.Dataset, tokenizer: PreTrainedTokenizer) -> datasets.Dataset:
     def group_texts(examples: Dict[str, list], block_size: int = 512) -> BatchEncoding:
         concatenated_examples = {k: list(chain(*examples[k])) for k in examples.keys()}
         total_length = len(concatenated_examples[list(examples.keys())[0]])
@@ -167,9 +163,7 @@ if __name__ == '__main__':
     set_seed(args.seed)
 
     # lightning module
-    lit_module = LitModule(
-        args.model_name, args.learning_rate, args.use_tril_attention_mask
-    )
+    lit_module = LitModule(args.model_name, args.learning_rate, args.use_tril_attention_mask)
 
     # datasets
     tokenizer = load_tokenizer(args.tokenizer_name_or_path)
