@@ -31,15 +31,17 @@ def init_model(model_name: str) -> PreTrainedModel:
 
 
 def load_model(model_name_or_path: Union[str, os.PathLike]) -> PreTrainedModel:
-    if model_name_or_path in custom_models.MODEL_FOR_CAUSAL_LM_MAPPING_NAMES:
-        model = custom_models.AutoModelForCausalLM.from_pretrained(model_name_or_path)
-    elif model_name_or_path in custom_models.MODEL_MAPPING_NAMES:
-        model = custom_models.AutoModel.from_pretrained(model_name_or_path)
+    config = AutoConfig.from_pretrained(model_name_or_path)
+
+    if config.model_type in custom_models.MODEL_FOR_CAUSAL_LM_MAPPING_NAMES:
+        model = custom_models.AutoModelForCausalLM.from_pretrained(model_name_or_path, config=config)
+    elif config.model_type in custom_models.MODEL_MAPPING_NAMES:
+        model = custom_models.AutoModel.from_pretrained(model_name_or_path, config=config)
     else:
         try:
-            model = AutoModelForCausalLM.from_pretrained(model_name_or_path, trust_remote_code=True)
+            model = AutoModelForCausalLM.from_pretrained(model_name_or_path, config=config, trust_remote_code=True)
         except ValueError:
-            model = AutoModel.from_pretrained(model_name_or_path, trust_remote_code=True)
+            model = AutoModel.from_pretrained(model_name_or_path, config=config, trust_remote_code=True)
     return model
 
 
