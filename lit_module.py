@@ -27,9 +27,7 @@ class LitModule(pl.LightningModule):
         )
 
     @cache
-    def get_batch_tril_matrix(
-        self, block_size: int, batch_size: Optional[int] = None
-    ) -> torch.Tensor:
+    def get_batch_tril_matrix(self, block_size: int, batch_size: Optional[int] = None) -> torch.Tensor:
         matrix = torch.ones(block_size, block_size).tril()
         if batch_size is not None:
             matrix = matrix.repeat(batch_size, 1, 1)
@@ -42,9 +40,7 @@ class LitModule(pl.LightningModule):
     def training_step(self, batch: Dict[str, torch.Tensor], batch_idx):
         batch_size, block_size = batch['input_ids'].shape
         if self.use_tril_attention_mask:
-            batch['attention_mask'] = self.get_batch_tril_matrix(
-                block_size, batch_size=batch_size
-            ).to(self.device)
+            batch['attention_mask'] = self.get_batch_tril_matrix(block_size, batch_size=batch_size).to(self.device)
         outputs = self.llm(**batch, return_dict=True)
         loss = outputs.loss
 
@@ -80,9 +76,7 @@ class LitModule(pl.LightningModule):
                         self.trainer.model.parameters(), lr=self.learning_rate
                     )
                     return optimizer
-        optimizer = torch.optim.AdamW(
-            self.trainer.model.parameters(), lr=self.learning_rate
-        )
+        optimizer = torch.optim.AdamW(self.trainer.model.parameters(), lr=self.learning_rate)
         return optimizer
 
     def configure_callbacks(self):

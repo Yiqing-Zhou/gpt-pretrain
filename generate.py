@@ -13,15 +13,11 @@ def eval_prompts(
     prompts: List[str],
     use_tril_attention_mask: bool = False,
 ) -> List[str]:
-    inputs = tokenizer(
-        prompts, padding=True, return_tensors='pt', return_attention_mask=True
-    )
+    inputs = tokenizer(prompts, padding=True, return_tensors='pt', return_attention_mask=True)
     inputs['position_ids'] = inputs.attention_mask.cumsum(-1) - 1
     inputs['position_ids'].masked_fill_(inputs.attention_mask == 0, 1)
     if use_tril_attention_mask:
-        inputs['attention_mask'] = (
-            inputs.attention_mask.unsqueeze(1) * inputs.attention_mask.unsqueeze(2)
-        ).tril()
+        inputs['attention_mask'] = (inputs.attention_mask.unsqueeze(1) * inputs.attention_mask.unsqueeze(2)).tril()
     inputs = inputs.to(model.device)
     with torch.inference_mode():
         output_ids = model.generate(
@@ -32,9 +28,7 @@ def eval_prompts(
             eos_token_id=tokenizer.eos_token_id,
             early_stopping=True,
         )
-    completes = tokenizer.batch_decode(
-        output_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
-    )
+    completes = tokenizer.batch_decode(output_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)
     return completes
 
 
@@ -81,9 +75,7 @@ if __name__ == '__main__':
         "这是一个最好的时代，这是一个最坏的时代。",
         "这是一个最好的时代，这是一个最坏的",
     ]
-    completes = eval_prompts(
-        model, tokenizer, prompts, use_tril_attention_mask=args.use_tril_attention_mask
-    )
+    completes = eval_prompts(model, tokenizer, prompts, use_tril_attention_mask=args.use_tril_attention_mask)
 
     for prompt, complete in zip(prompts, completes):
         print("[p]", prompt)
