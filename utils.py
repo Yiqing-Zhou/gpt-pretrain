@@ -12,9 +12,11 @@ from transformers import (
 
 import custom_models
 
+custom_models.register_custom_configs()
 
-def init_model(model_name: Union[str, os.PathLike]) -> PreTrainedModel:
-    config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
+
+def init_model(model_name: str) -> PreTrainedModel:
+    config = AutoConfig.for_model(model_type=model_name)
 
     if model_name in custom_models.MODEL_FOR_CAUSAL_LM_MAPPING_NAMES:
         model = custom_models.AutoModelForCausalLM.from_config(config)
